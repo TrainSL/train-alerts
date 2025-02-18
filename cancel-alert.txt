@@ -1,6 +1,6 @@
 🔴 Cancel Alert 🔴
 
-PARAM_START_TIME_SI ට PARAM_STARTSTATION_SI සිට PARAM_ENDSTATION_SI දක්වා ධාවනය වන යාගොඩ දුම්රිය ස්ථානයට PARAM_YGD_TIME_SI ට ලඟාවීමට නියමිත දුම්රියPARAM_REASON_SIඅද දින ධාවනය නොවේ.
+PARAM_START_TIME_SI ට PARAM_STARTSTATION_SI සිට PARAM_ENDSTATION_SI දක්වා ධාවනය වන යාගොඩ දුම්රිය ස්ථානයට PARAM_YGD_TIME_SI ට ලඟාවීමට නියමිත දුම්රියPARAM_REASON_SIඅද දින ධාවනය නොවේ.
 
 The train departs from PARAM_STARTSTATION_EN railway station at PARAM_START_TIME_EN to PARAM_ENDSTATION_EN railway station and arriving at Yagoda railway station at PARAM_YGD_TIME_EN will be canceled todayPARAM_REASON_EN.
 
