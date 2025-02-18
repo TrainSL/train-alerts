@@ -75,8 +75,8 @@
         let trainData = [];
         let selectedTrain = null;
         let lateAlertTemplate = '';
-        let reasonSi = '';
-        let reasonEn = '';
+        let reasonSi = " ";
+        let reasonEn = " ";
 
         // Listen to changes on the Notification Type dropdown
         document.getElementById('additionalOptions').addEventListener('change', function () {
@@ -119,15 +119,15 @@
 
             if (selectedReason === '1') {
                 // Reason 1: Technical Fault
-                reasonSi = "කාර්මික දෝශයකට ලක්වීම හේතුවෙන්";
-                reasonEn = "due to a technical fault";
+                reasonSi = " කාර්මික දෝශයකට ලක්වීම හේතුවෙන් ";
+                reasonEn = " due to a technical fault";
             } else if (selectedReason === '2') {
                 // Reason 2: Line Blockage
-                reasonSi = "මාර්ග අවහිරතාවයක් හේතුවෙන්";
+                reasonSi = " මාර්ග අවහිරතාවයක් හේතුවෙන් ";
                 reasonEn = "due to a line blockage";
             } else {
-                reasonSi = "";
-                reasonEn = "";
+                reasonSi = " ";
+                reasonEn = " ";
             }
         });
         // Fetch the JSON data and store it
