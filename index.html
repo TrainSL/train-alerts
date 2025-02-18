@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Gen YGD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+    <!-- Header -->
+    <header class="bg-gray-800 text-white py-6 text-center">
+        <h1 class="text-3xl font-bold mb-4">News Gen YGD</h1>
+    </header>
+
+    <!-- Section 1 with Train No Searchable Dropdown -->
+    <section id="section1" class="p-6 my-4 bg-white rounded-lg shadow-md mx-4">
+        <h2 class="text-2xl font-semibold mb-4">Train No</h2>
+        <div class="relative">
+            <input type="text" id="trainSearch" placeholder="Search Train..."
+                class="block w-full px-4 py-2 mb-2 bg-white text-gray-800 rounded-lg border border-gray-300 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <div id="dropdownContainer"
+                class="absolute z-10 bg-white border border-gray-300 rounded-lg shadow-md hidden max-h-48 overflow-y-auto">
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2 with Additional Options (Initially Hidden) -->
+    <section id="section2" class="p-6 my-4 bg-white rounded-lg shadow-md mx-4 hidden">
+        <h2 class="text-2xl font-semibold mb-4">Notification Details</h2>
+
+        <!-- Notification Type Dropdown -->
+        <label for="additionalOptions" class="block text-gray-700 font-medium mb-2">Notification Type:</label>
+        <select id="additionalOptions"
+            class="block w-full bg-white text-gray-800 py-2 px-4 pr-8 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">Select a Type</option>
+            <option value="1">Delay</option>
+            <option value="2">Cancel</option>
+        </select>
+
+        <!-- Reason Dropdown -->
+        <label for="reasonOptions" class="block text-gray-700 font-medium mt-4 mb-2">Reason:</label>
+        <select id="reasonOptions"
+            class="block w-full bg-white text-gray-800 py-2 px-4 pr-8 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">Select a Reason</option>
+            <option value="1">Technical Fault</option>
+            <option value="2">Line Blockage</option>
+        </select>
+
+        <!-- Custom Message Text Box -->
+        <!-- Late Time input field and label (initially hidden) -->
+        <label for="latetime" class="block text-gray-700 font-medium mt-4 mb-2 hidden">Late Time:</label>
+        <input type="text" id="latetime" rows="4" placeholder="Enter Late Minutes here"
+            class="block w-full bg-white text-gray-800 py-2 px-4 rounded-lg border border-gray-300 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 hidden">
+
+        <button id="submitButton"
+            class="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            Submit
+        </button>
+    </section>
+
+    <!-- Section 3 for Displaying Late Alert (Initially Hidden) -->
+    <section id="section3" class="p-6 my-4 bg-white rounded-lg shadow-md mx-4 hidden">
+        <h2 class="text-2xl font-semibold mb-4">Alert Notification</h2>
+        <textarea id="alertMessage" rows="6"
+            class="w-full p-4 bg-white text-gray-800 border border-gray-300 rounded-lg shadow-md" readonly></textarea>
+    </section>
+
+    <script>
+        let trainData = [];
+        let selectedTrain = null;
+        let lateAlertTemplate = '';
+        let reasonSi = '';
+        let reasonEn = '';
+
+        // Listen to changes on the Notification Type dropdown
+        document.getElementById('additionalOptions').addEventListener('change', function () {
+            const selectedOption = this.value;
+            const lateTimeInput = document.getElementById('latetime');
+            const lateTimeLabel = document.querySelector('label[for="latetime"]');
+
+            if (selectedOption === '1') {
+                // Show the Late Time input and make it mandatory when Delay is selected
+                lateTimeInput.required = true;  // Make it mandatory
+                lateTimeInput.classList.remove('hidden'); // Show it
+                lateTimeLabel.classList.remove('hidden'); // Show the label
+            } else {
+                // Hide the Late Time input and make it optional when Cancel is selected
+                lateTimeInput.required = false;  // Make it optional
+                lateTimeInput.classList.add('hidden'); // Hide it
+                lateTimeLabel.classList.add('hidden'); // Hide the label
+            }
+
+            if (selectedOption === '1') {
+                // Load late-alert.txt
+                fetch('late-alert.txt')
+                    .then(response => response.text())
+                    .then(data => {
+                        lateAlertTemplate = data; // Store the late alert template
+                    })
+                    .catch(error => console.error('Error loading late-alert.txt:', error));
+            } else if (selectedOption === '2') {
+                // Load cancel-alert.txt
+                fetch('cancel-alert.txt')
+                    .then(response => response.text())
+                    .then(data => {
+                        lateAlertTemplate = data; // Store the cancel alert template
+                    })
+                    .catch(error => console.error('Error loading cancel-alert.txt:', error));
+            }
+        });
+        document.getElementById('reasonOptions').addEventListener('change', function () {
+            const selectedReason = this.value;
+
+            if (selectedReason === '1') {
+                // Reason 1: Technical Fault
+                reasonSi = "කාර්මික දෝශයකට ලක්වීම හේතුවෙන්";
+                reasonEn = "due to a technical fault";
+            } else if (selectedReason === '2') {
+                // Reason 2: Line Blockage
+                reasonSi = "මාර්ග අවහිරතාවයක් හේතුවෙන්";
+                reasonEn = "due to a line blockage";
+            } else {
+                reasonSi = "";
+                reasonEn = "";
+            }
+        });
+        // Fetch the JSON data and store it
+        fetch('trains.json')
+            .then(response => response.json())
+            .then(data => {
+                trainData = data;
+                populateDropdown(data);
+            })
+            .catch(error => console.error('Error fetching train data:', error));
+
+        // Fetch the late-alert.txt template
+        fetch('late-alert.txt')
+            .then(response => response.text())
+            .then(template => {
+                lateAlertTemplate = template;
+            })
+            .catch(error => console.error('Error fetching late-alert.txt:', error));
+
+        // Populate the dropdown
+        function populateDropdown(data) {
+            const dropdownContainer = document.getElementById('dropdownContainer');
+            dropdownContainer.innerHTML = ''; // Clear previous options
+
+            data.forEach(train => {
+                const optionDiv = document.createElement('div');
+                optionDiv.textContent = `Train No: ${train.TrainNo} (${train.StartStationEn} to ${train.EndStationEn})`;
+                optionDiv.classList.add('px-4', 'py-2', 'hover:bg-blue-500', 'hover:text-white', 'cursor-pointer');
+                optionDiv.dataset.value = train.TrainNo;
+
+                // Add click event to insert the selected value into the search field
+                optionDiv.addEventListener('click', function () {
+                    document.getElementById('trainSearch').value = train.TrainNo;
+                    selectedTrain = train;
+                    dropdownContainer.classList.add('hidden'); // Hide the dropdown after selection
+                    document.getElementById('section2').classList.remove('hidden'); // Show Section 2
+                });
+
+                dropdownContainer.appendChild(optionDiv);
+            });
+        }
+
+        // Search and filter the dropdown options
+        document.getElementById('trainSearch').addEventListener('input', function (event) {
+            const searchTerm = event.target.value.toLowerCase();
+            const filteredData = trainData.filter(train =>
+                train.TrainNo.toString().includes(searchTerm) ||
+                train.StartStationEn.toLowerCase().includes(searchTerm) ||
+                train.EndStationEn.toLowerCase().includes(searchTerm)
+            );
+            populateDropdown(filteredData); // Populate dropdown with filtered data
+
+            // Show the dropdown when there are options to display
+            const dropdownContainer = document.getElementById('dropdownContainer');
+            if (filteredData.length > 0) {
+                dropdownContainer.classList.remove('hidden');
+            } else {
+                dropdownContainer.classList.add('hidden');
+            }
+        });
+
+        // Hide the dropdown when clicking outside
+        document.addEventListener('click', function (event) {
+            const dropdownContainer = document.getElementById('dropdownContainer');
+            if (!event.target.closest('#section1')) {
+                dropdownContainer.classList.add('hidden');
+            }
+        });
+
+        // Handle submit button click
+        document.getElementById('submitButton').addEventListener('click', function () {
+            const lateTime = document.getElementById('latetime').value;
+
+            if (selectedTrain && lateAlertTemplate) {
+
+                const currentDate = new Date().toLocaleDateString();
+                const currentTime = new Date().toLocaleTimeString();
+                // Replace placeholders in the late-alert template
+                let alertMessage = lateAlertTemplate
+                    .replace('PARAM_START_TIME_SI', selectedTrain.StartTimeSi)
+                    .replace('PARAM_STARTSTATION_SI', selectedTrain.StartStationSi)
+                    .replace('PARAM_ENDSTATION_SI', selectedTrain.EndStationSi)
+                    .replace('PARAM_YGD_TIME_SI', selectedTrain.YGDTimeSi)
+                    .replace('PARAM_LATETIME', lateTime)
+                    .replace('PARAM_STARTSTATION_EN', selectedTrain.StartStationEn)
+                    .replace('PARAM_START_TIME_EN', selectedTrain.StartTimeEn)
+                    .replace('PARAM_ENDSTATION_EN', selectedTrain.EndStationEn)
+                    .replace('PARAM_YGD_TIME_EN', selectedTrain.YGDTimeEn)
+                    .replace('PARAM_LATETIME', lateTime)
+                    .replace('PARAM_CURRENTDATE', currentDate)  // Updated
+                    .replace('PARAM_CURRENTTIME', currentTime) // Updated
+                    .replace('PARAM_REASON_SI', reasonSi)   // Replace reason in SI language
+                    .replace('PARAM_REASON_EN', reasonEn);
+
+                // Show the late alert in the new section
+                document.getElementById('alertMessage').value = alertMessage;
+                document.getElementById('section3').classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+
+</html>
