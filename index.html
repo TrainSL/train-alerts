@@ -37,6 +37,7 @@
             <option value="">Select a Type</option>
             <option value="1">Delay</option>
             <option value="2">Cancel</option>
+            <option value="3">Delay Only</option>
         </select>
 
         <!-- Reason Dropdown -->
@@ -107,6 +108,13 @@
             } else if (selectedOption === '2') {
                 // Load cancel-alert.txt
                 fetch('cancel-alert.txt')
+                    .then(response => response.text())
+                    .then(data => {
+                        lateAlertTemplate = data; // Store the cancel alert template
+                    })
+                    .catch(error => console.error('Error loading cancel-alert.txt:', error));
+            } else if (selectedOption === '3') {
+                fetch('late-alert2.txt')
                     .then(response => response.text())
                     .then(data => {
                         lateAlertTemplate = data; // Store the cancel alert template
